@@ -70,7 +70,7 @@ class Matrix:
         new_matrix = [new_matrix[i][n:] for i in range(n)]
         return new_matrix
 
-    def transpose(self, Matrix=[]):
+    def transpose(self, Matrix=None):
         """
         Computes the transpose of the given matrix.
 
@@ -92,17 +92,21 @@ class Matrix:
         Computes the sum of matrices A and B.
 
         Args:
-            A (list): The first input matrix.
-            B (list): The second input matrix.
+            matrix (list): The first input matrix.
+            matrix2 (list): The second input matrix.
 
         Returns:
             list: The sum matrix.
         """
-        A, B = Matrix, matrix2
-        n, m = self.row, self.col
-        sum_matrix = [[]] * n
-        for i in range(n):
-            sum_matrix[i] = [A[i][j] + B[i][j] for j in range(m)]
+        matrix, n, m = (self.matrix, self.row, self.col) if Matrix is None or len(Matrix) == 0 \
+            else (Matrix, len(Matrix), len(Matrix[0]))
+        # try:
+        #     if len(matrix2) != n and len(matrix2) != m:
+        #         n = m/0
+        # assert:
+        #
+        # else:
+        sum_matrix = [[matrix[i][j] + matrix2[i][j] for j in range(m)] for i in range(n)]
         return sum_matrix
 
     def multiply_by_scaler(self, scaler, Matrix=None):
@@ -131,7 +135,8 @@ class Matrix:
             list: The resulting matrix.
         """
         matrix = self.matrix if Matrix is None else Matrix
-        A, B = (matrix,matrix2) if mult_from_the_right else (matrix2, matrix)
+        A, B = (matrix, matrix2) if Matrix is None else (matrix2, matrix)
+        if not mult_from_the_right: A, B = B, A
         n, m, s = len(A), len(B[0]), len(A[0])
         multiplication = [[]] * n
         for i in range(n):
@@ -196,7 +201,6 @@ class Matrix:
         """
 
         matrix = self.matrix if Matrix is None else Matrix
-        matrix = self.matrix
         characteristic_coeffs = self.get_characteristic_polynomial(matrix)
         from numpy import roots as numpy_roots
         eigenvalues = numpy_roots(characteristic_coeffs)
@@ -220,7 +224,7 @@ class Matrix:
         """
         Prints the matrix stored in the Matrix object.
         """
-        print(self.matrix)
+        [print(*row) for row in self.matrix]
 
 
 class Polynomial:
@@ -284,21 +288,21 @@ matrix_obj = Matrix([[1, 3], [4, 6]])
 # print("Transposed Matrix:")
 # matrix_obj.print_my_matrix()
 
-# Test matrix_sum method
-sum_matrix = matrix_obj.matrix_sum([[1, 2], [3, 4]], [[5, 6], [7, 8]])
-print("Sum Matrix:")
-matrix_obj.print_my_matrix()
+# # Test matrix_sum method
+# sum_matrix = Matrix(matrix_obj.matrix_sum([[1, 2], [3, 4]], [[5, 6], [7, 8]]))
+# print("Sum Matrix:")
+# sum_matrix.print_my_matrix()
 
 # # Test multiply_by_scaler method
 # scaled_matrix = matrix_obj.multiply_by_scaler(2, [[1, 2], [3, 4]])
 # print("Scaled Matrix:")
-# matrix_obj.print_my_matrix()
-#
-# # Test matrix_multiplication method
-# mult_matrix = matrix_obj.matrix_multiplication([[1, 2], [3, 4]], [[5, 6], [7, 8]])
-# print("Multiplied Matrix:")
-# matrix_obj.print_my_matrix()
-#
+# print(scaled_matrix)
+
+# Test matrix_multiplication method
+mult_matrix = Matrix(matrix_obj.matrix_multiplication([[1, 3], [4, 6]], [[5, 6], [7, 8]]))
+print("Multiplied Matrix:")
+mult_matrix.print_my_matrix()
+
 # # Test determinant method
 # det_value = matrix_obj.determinant([[1, 2], [3, 4]])
 # print("Determinant:", det_value)
