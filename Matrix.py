@@ -280,6 +280,7 @@ mat = Matrix(matrix_obj.rref())
 print("Row-Reduced Matrix:")
 mat.print_my_matrix()
 
+
 # # Test inverse_matrix method
 # inverse_matrix = matrix_obj.inverse_matrix()
 # print("Inverse Matrix:")
