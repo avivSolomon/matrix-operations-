@@ -154,18 +154,18 @@ class Matrix:
             float/int: The determinant value.
         """
         matrix = self.matrix if Matrix is None else Matrix
-        n, r, j, det = self.row, 0, 0, 1
+        n, r, j, det = len(matrix), 0, 0, 1
         mat = matrix.copy()
         while j < n and r < n:
             i = r
             while i < n:
-                if matrix[i][j] != 0:
+                if mat[i][j] != 0:
                     if i != r:
                         mat[i], mat[r], det = mat[r], mat[i], det * -1  # Swap rows
                     lead_value = matrix[r][j]
                     det *= matrix[r][j]
-                    matrix[r] = [matrix[r][k] / lead_value for k in range(j, n)]  # Normalize leading row
-                    for k in range(r + 1, n):  # Eliminate the column
+                    matrix[r][j:] = [matrix[r][k] / lead_value for k in range(j, n)]  # Normalize leading row
+                    for k in range(r + 1, n):       # Eliminate the column
                         lead_value_k = matrix[k][j]
                         matrix[k] = [kv - lead_value_k * rv for rv, kv in
                                      zip(matrix[r], matrix[k])] if k != r else matrix[r]
@@ -181,12 +181,15 @@ class Matrix:
         """
         Computes the coefficients of the characteristic polynomial.
         """
-        matrix = self.matrix if Matrix is None else Matrix
-        n = self.row
-        coeffs = [1]
-        for i in range(1, n + 1):
+        if Matrix is None:
+            matrix, n = self.matrix, self.row
+        else:
+            matrix, n = Matrix, len(Matrix)
+        coeffs = [1, -self.trace(matrix)]
+        for i in range(2, n + 1):
             sub_matrix = [matrix[j][:i] for j in range(i)]
-            coeffs.append((-1) ** i * self.determinant(sub_matrix))
+            det = self.determinant(sub_matrix)
+            coeffs.append((-1) ** (n - i) * det)
         return coeffs
 
     def eigenvalues(self, Matrix=None):
@@ -210,21 +213,19 @@ class Matrix:
         """
         Computes the trace of the given matrix, which is the sum of the diagonal elements.
 
-        Args:
-            matrix (list): The input matrix.
-
         Returns:
             float/int: The trace value.
         """
+        if Matrix is None:  matrix, n = self.matrix, self.row
+        else:               matrix, n = Matrix, len(Matrix)
+        return sum([matrix[i][i] for i in range(n)])
 
-        matrix = self.matrix if Matrix is None else Matrix
-        return sum([matrix[i][i] for i in range(self.row)])
-
-    def print_my_matrix(self):
+    def print_my_matrix(self, i=0, j=None):
         """
         Prints the matrix stored in the Matrix object.
         """
-        [print(*row) for row in self.matrix]
+        j = self.col if j is None else j
+        [print(*row[i:j]) for row in self.matrix]
 
 
 class Polynomial:
@@ -271,17 +272,22 @@ class Polynomial:
 """----------------------------------------------------------------------"""
 
 # Create a Matrix object
-matrix_obj = Matrix([[1, 3], [4, 6]])
+matrix_obj = Matrix([[1, 2, -2], [3, 4, 6], [-1, 6, 4]])
+matrix_obj2 = Matrix([[1, 2], [3, 4]])
 
 # # Test rref method
-# mat = matrix_obj.rref(Canonical_matrix=True)
-# print("Row-Reduced Matrix:")
-# print(mat)
+mat = Matrix(matrix_obj.rref())
+print("Row-Reduced Matrix:")
+mat.print_my_matrix()
 
 # # Test inverse_matrix method
 # inverse_matrix = matrix_obj.inverse_matrix()
 # print("Inverse Matrix:")
 # print(inverse_matrix)
+
+# # Test trace method
+# trace_value = matrix_obj.trace([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+# print("Trace Value:", trace_value)
 
 # # Test transpose method
 # transpose_matrix = matrix_obj.transpose([[1, 2, 3], [4, 5, 6]])
@@ -298,23 +304,21 @@ matrix_obj = Matrix([[1, 3], [4, 6]])
 # print("Scaled Matrix:")
 # print(scaled_matrix)
 
-# Test matrix_multiplication method
-mult_matrix = Matrix(matrix_obj.matrix_multiplication([[1, 3], [4, 6]], [[5, 6], [7, 8]]))
-print("Multiplied Matrix:")
-mult_matrix.print_my_matrix()
+# # Test matrix_multiplication method
+# mult_matrix = Matrix(matrix_obj.matrix_multiplication([[1, 3], [4, 6]], [[5, 6], [7, 8]]))
+# print("Multiplied Matrix:")
+# mult_matrix.print_my_matrix()
 
 # # Test determinant method
-# det_value = matrix_obj.determinant([[1, 2], [3, 4]])
+# det_value = matrix_obj2.determinant()
 # print("Determinant:", det_value)
-#
-# # Test get_characteristic_polynomial method
-# char_poly_coeffs = matrix_obj.get_characteristic_polynomial([[1, 2], [3, 4]])
-# print("Characteristic Polynomial Coefficients:", char_poly_coeffs)
-#
+
+# Test get_characteristic_polynomial method
+char_poly_coeffs = matrix_obj.get_characteristic_polynomial([[1, 2], [3, 4]])
+print("Characteristic Polynomial Coefficients:", char_poly_coeffs)
+
 # # Test eigenvalues method
 # eigenvalues = matrix_obj.eigenvalues([[1, 2], [3, 4]])
 # print("Eigenvalues:", eigenvalues)
-#
-# # Test trace method
-# trace_value = matrix_obj.trace([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-# print("Trace Value:", trace_value)
+
+
