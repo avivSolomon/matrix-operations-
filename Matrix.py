@@ -4,10 +4,8 @@
 - מציאת ערכים ווקטורים עצמיים
 -מטריצה צמודה
 
-לצמצם את הפונקציה של הדירוג והדטרמיננטה
-להשלים את הטסטים לכל המתודות (בעקבות המעבר לצורת מחלקה- עצרתי בסכום מטריוצות)
+צריך לתקן עוד את הפונקציה של מציאת המקדמים של הפולינום האופייני
 """
-
 
 class Matrix:
     def __init__(self, matrix):
@@ -20,171 +18,205 @@ class Matrix:
         self.matrix = matrix
         self.row = len(matrix)
         self.col = len(matrix[0])
+        self.square_matrix = self.row == self.col
+        # self.canonical = self.rref(matrix)
+        # if self.square_matrix:
+        #     self.det = self.determinant(matrix)
+        #     if self.det:
+        #         self.inverse = self.inverse_matrix(matrix)
 
-    def rref(self, Matrix=None, Canonical_matrix=True):
+    def rref(self, Matrix=None, Canonical_matrix=True, return_determinant=False, update_matrix=True):
         """
         Performs row reduction to its row echelon form (also known as reduced row echelon form) on the given matrix.
 
         Args:
             Matrix (list): The input matrix.
             Canonical_matrix (bool): Determines whether to convert the matrix to canonical form. Default is True.
+            return_determinant (bool): Determines whether to return the determinant of the matrix. Default is False.
+            update_matrix (bool): Determines whether to update the stored matrix with the row-reduced form. Default is True.
 
         Returns:
-            list: The row-reduced matrix.
+            list/float: The row-reduced matrix or the determinant value.
         """
-        matrix, n, m = (self.matrix, self.row, self.col) if Matrix is None or len(Matrix) == 0\
+        matrix, rows, columns = (self.matrix, self.row, self.col) if Matrix is None or len(Matrix) == 0 \
             else (Matrix, len(Matrix), len(Matrix[0]))
-        mat = [row[:] for row in matrix]  # Create a copy of the matrix
-        r, j = 0, 0
-        while j < m and r < min(n, m):
-            i = r
-            while i < n:
-                if mat[i][j] != 0:
-                    mat[i], mat[r] = mat[r], mat[i]  # Swap rows
-                    lead_value = mat[r][j]
-                    mat[r][j:] = [mat[r][k] / lead_value for k in range(j, m)]  # Normalize leading row
-                    for k in (range(n) if Canonical_matrix else range(r + 1, n)):  # Eliminate the column
-                        lead_value_k = mat[k][j]
-                        mat[k][j:] = [kv - lead_value_k * rv for rv, kv in
-                                      zip(mat[r][j:], mat[k][j:])] if k != r else mat[r][j:]
-                    r += 1
+        mat = matrix if update_matrix else [row[:] for row in matrix]  # Create a copy of the matrix
+        row_echelon, col, det = 0, 0, 1
+        while col < columns and row_echelon < min(rows, columns):
+            row = row_echelon
+            while row < rows:
+                if mat[row][col] != 0:
+                    mat[row], mat[row_echelon], det = mat[row_echelon], mat[row], -det  # Swap rows
+                    lead_value = mat[row_echelon][col]
+                    det *= lead_value
+                    mat[row_echelon][col:] = [mat[row_echelon][i] / lead_value for i in
+                                              range(col, columns)]  # Normalize leading row
+                    for k in (range(rows) if Canonical_matrix else range(row_echelon + 1, rows)):  # Eliminate the column
+                        lead_value_k = mat[k][col]
+                        mat[k][col:] = [kv - lead_value_k * rv for rv, kv in
+                                        zip(mat[row_echelon][col:], mat[k][col:])] if k != row_echelon\
+                            else mat[row_echelon][col:]
+                    row_echelon += 1
                     break
-                i += 1
-            j += 1
-        return mat
+                row += 1
+            col += 1
+        return mat if return_determinant else det
 
-    def inverse_matrix(self, Matrix=None):
+    def inverse_matrix(self, Matrix=None, update_matrix=True):
         """
         Computes the inverse of the given matrix using row reduction.
 
         Args:
-            matrix (list): The input matrix.
+            Matrix (list): The input matrix.
+            update_matrix (bool): Determines whether to update the stored matrix with the inverse matrix. Default is True.
 
         Returns:
             list: The inverse matrix.
         """
-        matrix = self.matrix if Matrix is None or len(Matrix) == 0 else Matrix
-        n = self.row
+        matrix, n = (self.matrix, self.row) if Matrix is None else (Matrix, len(Matrix))
         mat = [matrix[i][:] + [1 if i == j else 0 for j in range(n)] for i in range(n)]
         new_matrix = self.rref(mat)
         new_matrix = [new_matrix[i][n:] for i in range(n)]
+        if update_matrix: self.matrix = new_matrix
         return new_matrix
 
-    def transpose(self, Matrix=None):
+    def transpose(self, Matrix=None, update_matrix=True):
         """
         Computes the transpose of the given matrix.
 
         Args:
-            matrix (list): The input matrix.
+            Matrix (list): The input matrix.
+            update_matrix (bool): Determines whether to update the stored matrix with the transposed matrix. Default is True.
 
         Returns:
             list: The transposed matrix.
         """
-        matrix = self.matrix if Matrix==[] else Matrix
-        n,  m = self.row, self.col
+        matrix = self.matrix if update_matrix else self.matrix.copy() if Matrix is None else Matrix
+        n, m = self.row, self.col
         transpose_matrix = [[matrix[j][i] for j in range(m)] for i in range(n)]
         return transpose_matrix
 
-
-
-    def matrix_sum(self, matrix2, Matrix=None):
+    def matrix_sum(self, matrix2, Matrix=None, update_matrix=True):
         """
         Computes the sum of matrices A and B.
 
         Args:
-            matrix (list): The first input matrix.
             matrix2 (list): The second input matrix.
+            Matrix (list): The first input matrix.
+            update_matrix (bool): Determines whether to update the stored matrix with the sum matrix. Default is True.
 
         Returns:
             list: The sum matrix.
         """
-        matrix, n, m = (self.matrix, self.row, self.col) if Matrix is None or len(Matrix) == 0 \
-            else (Matrix, len(Matrix), len(Matrix[0]))
-        # try:
-        #     if len(matrix2) != n and len(matrix2) != m:
-        #         n = m/0
-        # assert:
-        #
-        # else:
+        matrix, n, m = (self.matrix if update_matrix else self.matrix.copy(),self.row, self.col)\
+            if Matrix is None else (Matrix, len(Matrix), len(Matrix[0]))
+        if len(matrix2) != n and len(matrix2[0]) != m:
+            raise ValueError("The matrices do not have the same dimension, so it is not possible to add them together")
         sum_matrix = [[matrix[i][j] + matrix2[i][j] for j in range(m)] for i in range(n)]
         return sum_matrix
 
-    def multiply_by_scaler(self, scaler, Matrix=None):
+    def multiply_by_scaler(self, scaler, Matrix=None, update_matrix=True):
         """
         Multiplies the given matrix by a scalar.
 
         Args:
             scaler (float/int): The scalar value.
-            matrix (list): The input matrix.
+            Matrix (list): The input matrix.
+            update_matrix (bool): Determines whether to update the stored matrix with the scaled matrix. Default is True.
 
         Returns:
             list: The scaled matrix.
         """
-        matrix = self.matrix if Matrix is None else Matrix
-        return [[scaler * a for a in row] for row in matrix]
+        matrix = (self.matrix if update_matrix else self.matrix.copy()) if Matrix is None else Matrix
+        matrix = [[scaler * a for a in row] for row in matrix]
+        return matrix
 
-    def matrix_multiplication(self, matrix2, Matrix=None, mult_from_the_right=True):
+    def matrix_multiplication(self, matrix2, Matrix=None, mult_from_the_right=True, update_matrix=True):
         """
         Performs matrix multiplication between matrices A and B.
 
         Args:
-            A (list): The first input matrix.
-            B (list): The second input matrix.
+            matrix2 (list): The second input matrix.
+            Matrix (list): The first input matrix.
+            mult_from_the_right (bool): Determines whether to multiply A from the right side of B. Default is True.
+            update_matrix (bool): Determines whether to update the stored matrix with the resulting matrix. Default is True.
 
         Returns:
             list: The resulting matrix.
         """
-        matrix = self.matrix if Matrix is None else Matrix
-        A, B = (matrix, matrix2) if Matrix is None else (matrix2, matrix)
+        if Matrix is None:
+            A, B = self.matrix if update_matrix else self.matrix.copy(), matrix2
+        else:
+            A, B = matrix2, Matrix
         if not mult_from_the_right: A, B = B, A
+
+        if len(A[0]) != len(B):
+            raise ValueError("The number of columns of the first matrix does not match the number of rows of the second,"
+                             " so they cannot be multiplied")
+
+        # return A @ B
         n, m, s = len(A), len(B[0]), len(A[0])
         multiplication = [[]] * n
         for i in range(n):
             multiplication[i] = [sum([A[i][k] * B[k][j] for k in range(s)]) for j in range(m)]
         return multiplication
 
+
+
     def determinant(self, Matrix=None):
         """
         Computes the determinant of the given matrix using row reduction.
 
         Args:
-            matrix (list): The input matrix.
+            Matrix (list): The input matrix.
 
         Returns:
             float/int: The determinant value.
         """
         matrix = self.matrix if Matrix is None else Matrix
-        n, r, j, det = len(matrix), 0, 0, 1
-        mat = matrix.copy()
-        while j < n and r < n:
-            i = r
-            while i < n:
-                if mat[i][j] != 0:
-                    if i != r:
-                        mat[i], mat[r], det = mat[r], mat[i], det * -1  # Swap rows
-                    lead_value = matrix[r][j]
-                    det *= matrix[r][j]
-                    matrix[r][j:] = [matrix[r][k] / lead_value for k in range(j, n)]  # Normalize leading row
-                    for k in range(r + 1, n):       # Eliminate the column
-                        lead_value_k = matrix[k][j]
-                        matrix[k] = [kv - lead_value_k * rv for rv, kv in
-                                     zip(matrix[r], matrix[k])] if k != r else matrix[r]
-                    r += 1
-                    break
-                i += 1
-            j += 1
-        for i in range(n):
-            det *= matrix[i][i]
-        return det
+        if len(matrix) != len(matrix[0]):
+            raise ValueError("The matrix is not square, so the determinant cannot be computed for it")
+        return self.rref(Matrix=matrix, return_determinant=True)
 
+    def recursive_determinant(self,det=0, Matrix=None):
+        """
+        Computes the determinant of the given matrix recursively.
+
+        Args:
+            det (float/int): The current determinant value. Default is 0.
+            Matrix (list): The input matrix.
+
+        Returns:
+            float/int: The determinant value.
+        """
+        n = len(Matrix)
+        if n <= 2:
+            det += Matrix[1][1]*Matrix[2][2]-Matrix[1][2]*Matrix[2][1]
+            return det
+        else:
+            for i in range(n):
+                open_row = Matrix.pop(i)
+                for j in range(len(open_row)):
+                    new_matrix = self.transpose(Matrix, update_matrix=False)
+                    new_matrix.pop(j)
+                    new_matrix = self.transpose(new_matrix)
+                    det += (-1)**(i+j)*(open_row[j])*self.recursive_determinant(det, new_matrix)
+                    return det
     def get_characteristic_polynomial(self, Matrix=None):
         """
         Computes the coefficients of the characteristic polynomial.
+
+        Args:
+            Matrix (list): The input matrix.
+
+        Returns:
+            list: The coefficients of the characteristic polynomial.
         """
         if Matrix is None:
             matrix, n = self.matrix, self.row
         else:
             matrix, n = Matrix, len(Matrix)
+
         coeffs = [1, -self.trace(matrix)]
         for i in range(2, n + 1):
             sub_matrix = [matrix[j][:i] for j in range(i)]
@@ -197,129 +229,66 @@ class Matrix:
         Computes the eigenvalues of the given square matrix.
 
         Args:
-            matrix (list): The input square matrix.
+            Matrix (list): The input square matrix.
 
         Returns:
             list: The eigenvalues of the matrix.
         """
-
         matrix = self.matrix if Matrix is None else Matrix
         characteristic_coeffs = self.get_characteristic_polynomial(matrix)
         from numpy import roots as numpy_roots
         eigenvalues = numpy_roots(characteristic_coeffs)
         return eigenvalues.tolist()
 
-    def trace(self, Matrix=None):
+    def trace(self, Matrix=None, return_list=False):
         """
         Computes the trace of the given matrix, which is the sum of the diagonal elements.
 
+        Args:
+            Matrix (list): The input matrix.
+            return_list (bool): Determines whether to return a list of diagonal elements. Default is False.
+
         Returns:
-            float/int: The trace value.
+            float/int/list: The trace value or a list of diagonal elements.
         """
         if Matrix is None:  matrix, n = self.matrix, self.row
         else:               matrix, n = Matrix, len(Matrix)
-        return sum([matrix[i][i] for i in range(n)])
+        trace_list = [matrix[i][i] for i in range(n)]
+        return trace_list if return_list else sum(trace_list)
 
-    def print_my_matrix(self, i=0, j=None):
+    def subset(self, lst, allSet=[], i=0, cur=[]):
         """
-        Prints the matrix stored in the Matrix object.
-        """
-        j = self.col if j is None else j
-        [print(*row[i:j]) for row in self.matrix]
-
-
-class Polynomial:
-    def __init__(self, coeffs):
-        self.coeffs = coeffs
-
-    def evaluate(self, x):
-        """
-        Evaluates the polynomial at a given value of x.
-        """
-        result = 0
-        for i in range(len(self.coeffs)):
-            result += self.coeffs[i] * x**i
-        return result
-
-    def derivative(self):
-        """
-        Computes the derivative of the polynomial.
-        """
-        derivative_coeffs = [i * self.coeffs[i] for i in range(1, len(self.coeffs))]
-        return Polynomial(derivative_coeffs)
-
-    def newton_raphson(self, initial_guess, epsilon=1e-6, max_iterations=100):
-        """
-        Performs the Newton-Raphson method to find the roots of the polynomial.
+        Finds all possible subsets of a given list.
 
         Args:
-            initial_guess (float): The initial guess for the root.
-            epsilon (float): The desired accuracy of the root. Defaults to 1e-6.
-            max_iterations (int): The maximum number of iterations. Defaults to 100.
+            lst (list): The input list.
+            allSet (list): The list to store all subsets. Default is an empty list.
+            i (int): The current index. Default is 0.
+            cur (list): The current subset. Default is an empty list.
 
         Returns:
-            float: The estimated root of the polynomial.
+            list: The list of all subsets.
         """
-        x = initial_guess
-        iterations = 0
+        if i >= len(lst):
+            allSet.append(cur.copy())
+            return allSet
 
-        while abs(self.evaluate(x)) > epsilon and iterations < max_iterations:
-            x = x - self.evaluate(x) / self.derivative().evaluate(x)
-            iterations += 1
-        return x
+        cur.append(lst[i])
+        allSet = self.subset(lst, allSet, i + 1, cur)
+        cur.pop()
+        allSet = self.subset(lst, allSet, i + 1, cur)
+        return allSet
 
+    def print_my_matrix(self, i=0, j=None, step=1):
+        """
+        Prints the matrix stored in the Matrix object.
 
-"""----------------------------------------------------------------------"""
-
-# Create a Matrix object
-matrix_obj = Matrix([[1, 2, -2], [3, 4, 6], [-1, 6, 4]])
-matrix_obj2 = Matrix([[1, 2], [3, 4]])
-
-# # Test rref method
-mat = Matrix(matrix_obj.rref())
-print("Row-Reduced Matrix:")
-mat.print_my_matrix()
-
-
-# # Test inverse_matrix method
-# inverse_matrix = matrix_obj.inverse_matrix()
-# print("Inverse Matrix:")
-# print(inverse_matrix)
-
-# # Test trace method
-# trace_value = matrix_obj.trace([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-# print("Trace Value:", trace_value)
-
-# # Test transpose method
-# transpose_matrix = matrix_obj.transpose([[1, 2, 3], [4, 5, 6]])
-# print("Transposed Matrix:")
-# matrix_obj.print_my_matrix()
-
-# # Test matrix_sum method
-# sum_matrix = Matrix(matrix_obj.matrix_sum([[1, 2], [3, 4]], [[5, 6], [7, 8]]))
-# print("Sum Matrix:")
-# sum_matrix.print_my_matrix()
-
-# # Test multiply_by_scaler method
-# scaled_matrix = matrix_obj.multiply_by_scaler(2, [[1, 2], [3, 4]])
-# print("Scaled Matrix:")
-# print(scaled_matrix)
-
-# # Test matrix_multiplication method
-# mult_matrix = Matrix(matrix_obj.matrix_multiplication([[1, 3], [4, 6]], [[5, 6], [7, 8]]))
-# print("Multiplied Matrix:")
-# mult_matrix.print_my_matrix()
-
-# # Test determinant method
-# det_value = matrix_obj2.determinant()
-# print("Determinant:", det_value)
-
-# Test get_characteristic_polynomial method
-char_poly_coeffs = matrix_obj.get_characteristic_polynomial([[1, 2], [3, 4]])
-print("Characteristic Polynomial Coefficients:", char_poly_coeffs)
-
-# # Test eigenvalues method
-# eigenvalues = matrix_obj.eigenvalues([[1, 2], [3, 4]])
-# print("Eigenvalues:", eigenvalues)
+        Args:
+            i (int): The starting index of rows. Default is 0.
+            j (int): The ending index of rows. Default is None (all rows).
+            step (int): The step size for rows. Default is 1.
+        """
+        j = self.col if j is None else j
+        [print(*row[i:j:step]) for row in self.matrix]
 
 
