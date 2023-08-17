@@ -18,15 +18,13 @@ class Matrix:
         self.row = len(matrix)
         self.col = len(matrix[0])
         self.square_matrix = self.row == self.col
-        # self.canonical = self.rref(matrix)
-        # if self.square_matrix:
-        #     self.det = self.determinant(matrix)
-        #     if self.det:
-        #         self.inverse = self.inverse_matrix(matrix)
+        self.canonical = self.rref(update_matrix=False)
+        self.det = self.determinant(matrix) if self.square_matrix else None
+        self.inverse = self.inverse_matrix(matrix, update_matrix=False) if self.det else None
+        self.print = [[True, True, True, True], [0, None, 1]] # [matrix, details, canonical, inverse], [i, j, step]
 
-    def __str__(self, i=0, j=None, step=1):
+    def set_print(self, matrix=True, details=False, canonical=False, inverse=False, i=0, j=None, step=1):
         """
-
         Prints the matrix stored in the Matrix object.
 
         Args:
@@ -34,14 +32,34 @@ class Matrix:
             j (int): The ending index of rows. Default is None (all rows).
             step (int): The step size for rows. Default is 1.
         """
+        self.print = [[matrix, details, canonical, inverse], [i, j, step]]
+
+    def __str__(self):
+        i, j, step = self.print[1]
         j = self.col if j is None else j
         mat = '\n'.join(['\t'.join([str(num) for num in row[i:j:step]])
                          for row in self.matrix])
-        return "\nThe Matrix:  \n" + mat + "\n" +\
-                "\nrow: " + str(self.row) + "\n" + \
-                "col: " + str(self.col) + "\n" + \
-                "square matrix: " + str(self.square_matrix) + "\n"
+        matrix = "\nThe Matrix:  \n" + mat + "\n"
 
+        detail = "row: " + str(self.row) + "\n" + \
+                 "col: " + str(self.col) + "\n" + \
+                 "square matrix: " + str(self.square_matrix) + "\n"
+        if self.square_matrix:
+            detail += "The determinant: " + str(self.det) + "\n"
+
+        con = '\n'.join(['\t'.join([str(num) for num in row])
+                         for row in self.canonical])
+        rref = "The canonical mode: \n" + con + "\n"
+
+        if self.det:
+            inverse = '\n'.join(['\t'.join([str(num) for num in row])
+                                 for row in self.inverse])
+            inv = "The inverse matrix: \n" + inverse + "\n"
+        else:
+            inv = ""
+
+        s, bol = [matrix, detail, rref, inv], self.print[0]
+        return '\n'.join([s[i] for i in range(4) if bol[i]])
 
     def rref(self, Matrix=None, Canonical_matrix=True, return_determinant=False, update_matrix=True):
         """
@@ -56,8 +74,8 @@ class Matrix:
         Returns:
             list/float: The row-reduced matrix or the determinant value.
         """
-        matrix, rows, columns = (self.matrix, self.row, self.col) if Matrix is None or len(Matrix) == 0 \
-            else (Matrix, len(Matrix), len(Matrix[0]))
+        matrix, rows, columns = (Matrix, len(Matrix), len(Matrix[0])) if Matrix \
+            else (self.matrix, self.row, self.col)
         mat = matrix if update_matrix else [row[:] for row in matrix]  # Create a copy of the matrix
         row_echelon, col, det = 0, 0, 1
         while col < columns and row_echelon < min(rows, columns):
@@ -78,7 +96,9 @@ class Matrix:
                     break
                 row += 1
             col += 1
-        return mat if return_determinant else det
+        for i in range(rows):
+            det *= mat[i][i]
+        return det if return_determinant else mat
 
     def inverse_matrix(self, Matrix=None, update_matrix=True):
         """
@@ -91,30 +111,13 @@ class Matrix:
         Returns:
             list: The inverse matrix.
         """
-        matrix, n = (self.matrix, self.row) if Matrix is None else (Matrix, len(Matrix))
+        matrix, n = (Matrix, len(Matrix)) if Matrix else (self.matrix, self.row)
         mat = [matrix[i][:] + [1 if i == j else 0 for j in range(n)] for i in range(n)]
         new_matrix = self.rref(mat)
         new_matrix = [new_matrix[i][n:] for i in range(n)]
-        if update_matrix: self.matrix = new_matrix
+        if update_matrix:
+            self.matrix = new_matrix
         return new_matrix
-
-    # def transpose(self, Matrix=None, update_matrix=True):
-    #     """
-    #     Computes the transpose of the given matrix.
-    #
-    #     Args:
-    #         Matrix (list): The input matrix.
-    #         update_matrix (bool): Determines whether to update the stored matrix with the transposed matrix. Default is True.
-    #
-    #     Returns:
-    #         list: The transposed matrix.
-    #     """
-    #     matrix = self.matrix if update_matrix else self.matrix.copy() if Matrix is None else Matrix
-    #     n, m = (self.row, self.col) if Matrix is None else (len(matrix), len(matrix[0]))
-    #     for i in range(n):
-    #         for j in range(i+1, m):
-    #             matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
-    #     return matrix
 
     def transpose(self, Matrix=None):
         """
@@ -124,14 +127,14 @@ class Matrix:
         Returns:
             list: The transposed matrix.
         """
-        matrix = self.matrix if Matrix is None else Matrix
-        if Matrix is not None:
+        matrix = Matrix if Matrix else self.matrix
+        if Matrix:
             self.matrix = list(zip(*matrix))
             return self.matrix
         return list(zip(*matrix))
 
     def rotate_left(self, Matrix=None, update_matrix=True):
-        matrix = self.matrix if Matrix is None else Matrix
+        matrix = Matrix if Matrix else self.matrix
         if update_matrix:
             self.matrix = list(zip(*matrix))[::-1]
             return self.matrix
@@ -212,10 +215,10 @@ class Matrix:
         Returns:
             float/int: The determinant value.
         """
-        matrix = self.matrix if Matrix is None else Matrix
+        matrix = Matrix if Matrix else self.matrix
         if len(matrix) != len(matrix[0]):
             raise ValueError("The matrix is not square, so the determinant cannot be computed for it")
-        return self.rref(Matrix=matrix, return_determinant=True)
+        return self.rref(Matrix=matrix, return_determinant=True, update_matrix=False)
 
     def recursive_determinant(self,det=0, Matrix=None):
         """
@@ -279,6 +282,16 @@ class Matrix:
         # eigenvalues = numpy_roots(characteristic_coeffs)
         # return eigenvalues.tolist()
 
+    def reshape(self, r :int = 1, c :int = None, Matrix :list[list] = None) -> list[list[int]]:
+        matrix, n, m = (Matrix, len(Matrix), len(Matrix[0])) if Matrix else (self.matrix, self.row, self.col)
+        flag = True if c is None and r else False
+        if r * c != m * n:
+            return matrix
+        arr = []
+        for row in matrix:
+            arr += row
+        return arr if flag else [arr[c * i: c * (i + 1)] for i in range(r)]
+
     def trace(self, Matrix=None, return_list=False):
         """
         Computes the trace of the given matrix, which is the sum of the diagonal elements.
@@ -290,8 +303,7 @@ class Matrix:
         Returns:
             float/int/list: The trace value or a list of diagonal elements.
         """
-        if Matrix is None:  matrix, n = self.matrix, self.row
-        else:               matrix, n = Matrix, len(Matrix)
+        matrix, n = (Matrix, len(Matrix)) if Matrix else self.matrix, self.row
         trace_list = [matrix[i][i] for i in range(n)]
         return trace_list if return_list else sum(trace_list)
 

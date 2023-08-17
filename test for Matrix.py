@@ -3,12 +3,13 @@ import Polynomial
 
 # Create a Matrix object
 matrix_obj = Matrix.Matrix([[1, 2, 3], [8, 9, 4], [7, 6, 5]])
-matrix_obj2 = Matrix.Matrix([[1, 2], [3, 4]])
-print(matrix_obj)
+matrix_obj2 = Matrix.Matrix([[1, 2], [2, 4]])
+# matrix_obj.set_print()
 
-matrix_obj.rotate_left()
-matrix_obj.rotate_left()
-print(matrix_obj)
+
+# matrix_obj.rotate_left()
+# matrix_obj.rotate_left()
+print(matrix_obj2)
 
 # # Test rref method
 # mat = Matrix.Matrix(matrix_obj.rref())
