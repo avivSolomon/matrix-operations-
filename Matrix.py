@@ -7,7 +7,7 @@
 """
 
 class Matrix:
-    def __init__(self, matrix):
+    def __init__(self, matrix: list[list]):
         """
         Constructor method for the Matrix class.
 
@@ -51,12 +51,11 @@ class Matrix:
                          for row in self.canonical])
         rref = "The canonical mode: \n" + con + "\n"
 
+        inv = ""
         if self.det:
             inverse = '\n'.join(['\t'.join([str(num) for num in row])
                                  for row in self.inverse])
             inv = "The inverse matrix: \n" + inverse + "\n"
-        else:
-            inv = ""
 
         s, bol = [matrix, detail, rref, inv], self.print[0]
         return '\n'.join([s[i] for i in range(4) if bol[i]])
@@ -106,7 +105,8 @@ class Matrix:
 
         Args:
             Matrix (list): The input matrix.
-            update_matrix (bool): Determines whether to update the stored matrix with the inverse matrix. Default is True.
+            update_matrix (bool):
+            Determines whether to update the stored matrix with the inverse matrix. Default is True.
 
         Returns:
             list: The inverse matrix.
@@ -181,9 +181,10 @@ class Matrix:
 
         Args:
             matrix2 (list): The second input matrix.
-            Matrix (list): The first input matrix.
-            mult_from_the_right (bool): Determines whether to multiply A from the right side of B. Default is True.
-            update_matrix (bool): Determines whether to update the stored matrix with the resulting matrix. Default is True.
+            Matrix (list): The first input matrix. mult_from_the_right (bool):
+            Determines whether to multiply A from the right side of B. Default is True.
+            update_matrix (bool):
+            Determines whether to update the stored matrix with the resulting matrix. Default is True.
 
         Returns:
             list: The resulting matrix.
@@ -192,10 +193,12 @@ class Matrix:
             A, B = self.matrix if update_matrix else self.matrix.copy(), matrix2
         else:
             A, B = matrix2, Matrix
-        if not mult_from_the_right: A, B = B, A
+        if not mult_from_the_right:
+            A, B = B, A
 
         if len(A[0]) != len(B):
-            raise ValueError("The number of columns of the first matrix does not match the number of rows of the second,"
+            raise ValueError("The number of columns of the first matrix does not match the number of rows of the "
+                             "second,"
                              " so they cannot be multiplied")
 
         n, m, s = len(A), len(B[0]), len(A[0])
