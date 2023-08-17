@@ -2,13 +2,18 @@ import Matrix
 import Polynomial
 
 # Create a Matrix object
-matrix_obj = Matrix.Matrix([[1, 2, -2], [3, 4, 6], [-1, 6, 4]])
+matrix_obj = Matrix.Matrix([[1, 2, 3], [8, 9, 4], [7, 6, 5]])
 matrix_obj2 = Matrix.Matrix([[1, 2], [3, 4]])
+print(matrix_obj)
+
+matrix_obj.rotate_left()
+matrix_obj.rotate_left()
+print(matrix_obj)
 
 # # Test rref method
 # mat = Matrix.Matrix(matrix_obj.rref())
-print("Row-Reduced Matrix:")
-matrix_obj.print_my_matrix(0,3,2)
+# print("Row-Reduced Matrix:")
+# matrix_obj.print_my_matrix(0,3,2)
 
 
 # # Test inverse_matrix method
@@ -41,15 +46,15 @@ matrix_obj.print_my_matrix(0,3,2)
 # mult_matrix.print_my_matrix()
 
 # # Test determinant method
-det_value = matrix_obj2.determinant()
-print("Determinant:", det_value)
+# det_value = matrix_obj2.determinant()
+# print("Determinant:", det_value)
 
 # Test get_characteristic_polynomial method
 # char_poly_coeffs = matrix_obj.get_characteristic_polynomial([[1, 2], [3, 4]])
 # print("Characteristic Polynomial Coefficients:", char_poly_coeffs)
 
-char_poly_coeffs = matrix_obj.get_characteristic_polynomial([[2, 2, 1], [6, -3, 0], [-1, -2, -1]])
-print("Characteristic Polynomial Coefficients:", char_poly_coeffs)
+# char_poly_coeffs = matrix_obj.get_characteristic_polynomial([[2, 2, 1], [6, -3, 0], [-1, -2, -1]])
+# print("Characteristic Polynomial Coefficients:", char_poly_coeffs)
 
 # # Test eigenvalues method
 # eigenvalues = matrix_obj.eigenvalues([[1, 2], [3, 4]])

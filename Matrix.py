@@ -1,4 +1,3 @@
-
 """
 - מעבר בין בסיסים
 - מציאת ערכים ווקטורים עצמיים
@@ -24,6 +23,25 @@ class Matrix:
         #     self.det = self.determinant(matrix)
         #     if self.det:
         #         self.inverse = self.inverse_matrix(matrix)
+
+    def __str__(self, i=0, j=None, step=1):
+        """
+
+        Prints the matrix stored in the Matrix object.
+
+        Args:
+            i (int): The starting index of rows. Default is 0.
+            j (int): The ending index of rows. Default is None (all rows).
+            step (int): The step size for rows. Default is 1.
+        """
+        j = self.col if j is None else j
+        mat = '\n'.join(['\t'.join([str(num) for num in row[i:j:step]])
+                         for row in self.matrix])
+        return "\nThe Matrix:  \n" + mat + "\n" +\
+                "\nrow: " + str(self.row) + "\n" + \
+                "col: " + str(self.col) + "\n" + \
+                "square matrix: " + str(self.square_matrix) + "\n"
+
 
     def rref(self, Matrix=None, Canonical_matrix=True, return_determinant=False, update_matrix=True):
         """
@@ -80,21 +98,44 @@ class Matrix:
         if update_matrix: self.matrix = new_matrix
         return new_matrix
 
-    def transpose(self, Matrix=None, update_matrix=True):
+    # def transpose(self, Matrix=None, update_matrix=True):
+    #     """
+    #     Computes the transpose of the given matrix.
+    #
+    #     Args:
+    #         Matrix (list): The input matrix.
+    #         update_matrix (bool): Determines whether to update the stored matrix with the transposed matrix. Default is True.
+    #
+    #     Returns:
+    #         list: The transposed matrix.
+    #     """
+    #     matrix = self.matrix if update_matrix else self.matrix.copy() if Matrix is None else Matrix
+    #     n, m = (self.row, self.col) if Matrix is None else (len(matrix), len(matrix[0]))
+    #     for i in range(n):
+    #         for j in range(i+1, m):
+    #             matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+    #     return matrix
+
+    def transpose(self, Matrix=None):
         """
         Computes the transpose of the given matrix.
-
         Args:
             Matrix (list): The input matrix.
-            update_matrix (bool): Determines whether to update the stored matrix with the transposed matrix. Default is True.
-
         Returns:
             list: The transposed matrix.
         """
-        matrix = self.matrix if update_matrix else self.matrix.copy() if Matrix is None else Matrix
-        n, m = self.row, self.col
-        transpose_matrix = [[matrix[j][i] for j in range(m)] for i in range(n)]
-        return transpose_matrix
+        matrix = self.matrix if Matrix is None else Matrix
+        if Matrix is not None:
+            self.matrix = list(zip(*matrix))
+            return self.matrix
+        return list(zip(*matrix))
+
+    def rotate_left(self, Matrix=None, update_matrix=True):
+        matrix = self.matrix if Matrix is None else Matrix
+        if update_matrix:
+            self.matrix = list(zip(*matrix))[::-1]
+            return self.matrix
+        return list(zip(*matrix))[::-1]
 
     def matrix_sum(self, matrix2, Matrix=None, update_matrix=True):
         """
@@ -154,13 +195,11 @@ class Matrix:
             raise ValueError("The number of columns of the first matrix does not match the number of rows of the second,"
                              " so they cannot be multiplied")
 
-        # return A @ B
         n, m, s = len(A), len(B[0]), len(A[0])
         multiplication = [[]] * n
         for i in range(n):
             multiplication[i] = [sum([A[i][k] * B[k][j] for k in range(s)]) for j in range(m)]
         return multiplication
-
 
 
     def determinant(self, Matrix=None):
@@ -234,11 +273,11 @@ class Matrix:
         Returns:
             list: The eigenvalues of the matrix.
         """
-        matrix = self.matrix if Matrix is None else Matrix
-        characteristic_coeffs = self.get_characteristic_polynomial(matrix)
-        from numpy import roots as numpy_roots
-        eigenvalues = numpy_roots(characteristic_coeffs)
-        return eigenvalues.tolist()
+        # matrix = self.matrix if Matrix is None else Matrix
+        # characteristic_coeffs = self.get_characteristic_polynomial(matrix)
+        # from numpy import roots as numpy_roots
+        # eigenvalues = numpy_roots(characteristic_coeffs)
+        # return eigenvalues.tolist()
 
     def trace(self, Matrix=None, return_list=False):
         """
@@ -278,17 +317,4 @@ class Matrix:
         cur.pop()
         allSet = self.subset(lst, allSet, i + 1, cur)
         return allSet
-
-    def print_my_matrix(self, i=0, j=None, step=1):
-        """
-        Prints the matrix stored in the Matrix object.
-
-        Args:
-            i (int): The starting index of rows. Default is 0.
-            j (int): The ending index of rows. Default is None (all rows).
-            step (int): The step size for rows. Default is 1.
-        """
-        j = self.col if j is None else j
-        [print(*row[i:j:step]) for row in self.matrix]
-
 
